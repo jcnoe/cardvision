@@ -58,29 +58,38 @@ def detectSuit(card_img,manufacturer):
     print("Card suit is unknown")
     return "u"
 
+def detectRank(card_img,manufacturer,suit):
+
+    threshold = 0.95
+    rank_list = ["2","3","4","5","6","7","8","9","10","j","q","k","a"]
+    
+    # Convert card image to greyscale
+    card_img_g = cv2.cvtColor(card_img,cv2.COLOR_BGR2GRAY)
+
+    # Generate path variable
+    if ((suit == "c") | (suit == "s")):
+        base_path = "cards/" + manufacturer + "/templates/black/"
+    else:
+        base_path = "cards/" + manufacturer + "/templates/red/"
+
+    # For all possible ranks, perform template matching
+    for rank in rank_list:
+        path = base_path + rank + ".jpg"
+        rank_img_g = cv2.cvtColor(cv2.imread(path),cv2.COLOR_BGR2GRAY)
+        rank_img_g_f = cv2.rotate(rank_img_g,cv2.ROTATE_180)
+        rank_0 = cv2.matchTemplate(card_img_g,rank_img_g,cv2.TM_CCOEFF_NORMED)
+        rank_180 = cv2.matchTemplate(card_img_g,rank_img_g_f,cv2.TM_CCOEFF_NORMED)
+        rank_locs = np.where((rank_0 >= threshold) | (rank_180 >= threshold))
+        # Exit early if rank is found
+        if (len(rank_locs[0]) != 0):
+            print("Card is a " + rank)
+            return rank
+
 # Load card, rank, and suit images
 card_img = cv2.imread('cards/copag/bases/diamonds/2.jpg')
-rank_img = cv2.imread('cards/copag/templates/red/10.jpg')
-rank_img_f = cv2.rotate(rank_img,cv2.ROTATE_180)
-
-# Convert to grayscale
-card_img_g = cv2.cvtColor(card_img,cv2.COLOR_BGR2GRAY)
-rank_img_g = cv2.cvtColor(rank_img,cv2.COLOR_BGR2GRAY)
-rank_img_f_g = cv2.cvtColor(rank_img_f,cv2.COLOR_BGR2GRAY)
-
-# Template matching in two directions
-rank_0 = cv2.matchTemplate(card_img_g,rank_img_g,cv2.TM_CCOEFF_NORMED)
-rank_180 = cv2.matchTemplate(card_img_g,rank_img_f_g,cv2.TM_CCOEFF_NORMED)
-
-# Threshold the matches
-threshold = 0.8
-rank_locs = np.where((rank_0 >= threshold) | (rank_180 >= threshold))
-
-# Draw rectangles around matches
-for locs in zip(*rank_locs[::-1]):
-    cv2.rectangle(card_img,locs,(locs[0] + rank_img.shape[1],locs[1] + rank_img.shape[0]),(0, 255, 0),2)
 
 suit = detectSuit(card_img,"copag")
+rank = detectRank(card_img,"copag",suit)
 
 # Display boxed image
 #cv2.namedWindow("Result",cv2.WINDOW_NORMAL)
