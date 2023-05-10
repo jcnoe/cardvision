@@ -4,58 +4,30 @@ import numpy as np
 def detectSuit(card_img,manufacturer):
 
     threshold = 0.95
+    suit_list = ["c","s","d","h"]
 
     # Convert card image to greyscale
     card_img_g = cv2.cvtColor(card_img,cv2.COLOR_BGR2GRAY)
 
-    # Create paths
-    base_path = "cards/" + manufacturer + "/templates/"
-    club_path = base_path + "black/c.jpg"
-    spade_path = base_path + "black/s.jpg"
-    diamond_path = base_path + "red/d.jpg"
-    heart_path = base_path + "red/h.jpg"
-
-    # Look for clubs
-    club_img_g = cv2.cvtColor(cv2.imread(club_path),cv2.COLOR_BGR2GRAY)
-    club_img_f_g = cv2.rotate(club_img_g,cv2.ROTATE_180)
-    club_0 = cv2.matchTemplate(card_img_g,club_img_g,cv2.TM_CCOEFF_NORMED)
-    club_180 = cv2.matchTemplate(card_img_g,club_img_f_g,cv2.TM_CCOEFF_NORMED)
-    club_locs = np.where((club_0 >= threshold) | (club_180 >= threshold))
-    if (len(club_locs[0]) != 0):
-        print("Card is a club")
-        return "c"
+    # For all possible ranks, perform template matching
+    for suit in suit_list:
+        # Generate path variable
+        if ((suit == "c") | (suit == "s")):
+            base_path = "cards/" + manufacturer + "/templates/black/"
+        else:
+            base_path = "cards/" + manufacturer + "/templates/red/"
+        path = base_path + suit + ".jpg"
+        suit_img_g = cv2.cvtColor(cv2.imread(path),cv2.COLOR_BGR2GRAY)
+        suit_img_g_f = cv2.rotate(suit_img_g,cv2.ROTATE_180)
+        suit_0 = cv2.matchTemplate(card_img_g,suit_img_g,cv2.TM_CCOEFF_NORMED)
+        suit_180 = cv2.matchTemplate(card_img_g,suit_img_g_f,cv2.TM_CCOEFF_NORMED)
+        suit_locs = np.where((suit_0 >= threshold) | (suit_180 >= threshold))
+        # Exit early if rank is found
+        if (len(suit_locs[0]) != 0):
+            print("Card is a " + suit)
+            return suit
     
-    # Look for spades
-    spade_img_g = cv2.cvtColor(cv2.imread(spade_path),cv2.COLOR_BGR2GRAY)
-    spade_img_f_g = cv2.rotate(spade_img_g,cv2.ROTATE_180)
-    spade_0 = cv2.matchTemplate(card_img_g,spade_img_g,cv2.TM_CCOEFF_NORMED)
-    spade_180 = cv2.matchTemplate(card_img_g,spade_img_f_g,cv2.TM_CCOEFF_NORMED)
-    spade_locs = np.where((spade_0 >= threshold) | (spade_180 >= threshold))
-    if (len(spade_locs[0]) != 0):
-        print("Card is a spade")
-        return "s"
-    
-    # Look for diamonds
-    diamond_img_g = cv2.cvtColor(cv2.imread(diamond_path),cv2.COLOR_BGR2GRAY)
-    diamond_img_f_g = cv2.rotate(diamond_img_g,cv2.ROTATE_180)
-    diamond_0 = cv2.matchTemplate(card_img_g,diamond_img_g,cv2.TM_CCOEFF_NORMED)
-    diamond_180 = cv2.matchTemplate(card_img_g,diamond_img_f_g,cv2.TM_CCOEFF_NORMED)
-    diamond_locs = np.where((diamond_0 >= threshold) | (diamond_180 >= threshold))
-    if (len(diamond_locs[0]) != 0):
-        print("Card is a diamond")
-        return "d"
-    
-    # Look for hearts
-    heart_img_g = cv2.cvtColor(cv2.imread(heart_path),cv2.COLOR_BGR2GRAY)
-    heart_img_f_g = cv2.rotate(heart_img_g,cv2.ROTATE_180)
-    heart_0 = cv2.matchTemplate(card_img_g,heart_img_g,cv2.TM_CCOEFF_NORMED)
-    heart_180 = cv2.matchTemplate(card_img_g,heart_img_f_g,cv2.TM_CCOEFF_NORMED)
-    heart_locs = np.where((heart_0 >= threshold) | (heart_180 >= threshold))
-    if (len(heart_locs[0]) != 0):
-        print("Card is a heart")
-        return "h"
-    
-    print("Card suit is unknown")
+    print("Card suit cannot be determined")
     return "u"
 
 def detectRank(card_img,manufacturer,suit):
@@ -84,9 +56,12 @@ def detectRank(card_img,manufacturer,suit):
         if (len(rank_locs[0]) != 0):
             print("Card is a " + rank)
             return rank
+        
+    print("Card rank cannot be determined")
+    return "u"
 
 # Load card, rank, and suit images
-card_img = cv2.imread('cards/copag/bases/diamonds/2.jpg')
+card_img = cv2.imread('cards/copag/bases/clubs/10.jpg')
 
 suit = detectSuit(card_img,"copag")
 rank = detectRank(card_img,"copag",suit)
