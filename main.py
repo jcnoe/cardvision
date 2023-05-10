@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import time
 
 def detectSuit(card_img,manufacturer):
 
@@ -59,16 +60,19 @@ def detectRank(card_img,manufacturer,suit):
     return "u"
 
 # Load card, rank, and suit images
-card_img = cv2.imread('cards/copag/bases/hearts/2.jpg')
+path = "cards/copag/bases/hearts/a.jpg"
+card_img = cv2.imread(path)
 
+suit_start = time.time()
 suit = detectSuit(card_img,"copag")
+suit_end = time.time()
+rank_start = time.time()
 rank = detectRank(card_img,"copag",suit)
+rank_end = time.time()
 
 print(rank + suit)
 
-# Display boxed image
-#cv2.namedWindow("Result",cv2.WINDOW_NORMAL)
-#boxed_img = cv2.resize(card_img,(2256,1504))
-#cv2.imshow("Result",boxed_img)
-#cv2.waitKey(0)
-#cv2.destroyAllWindows()
+suit_time = str(suit_end - suit_start)
+rank_time = str(rank_end - rank_start)
+print("Suit execution time " + suit_time + " seconds")
+print("Rank execution time is " + rank_time + " seconds")
