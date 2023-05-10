@@ -24,7 +24,6 @@ def detectSuit(card_img,manufacturer):
         suit_locs = np.where((suit_0 >= threshold) | (suit_180 >= threshold))
         # Exit early if rank is found
         if (len(suit_locs[0]) != 0):
-            print("Card is a " + suit)
             return suit
     
     print("Card suit cannot be determined")
@@ -54,17 +53,18 @@ def detectRank(card_img,manufacturer,suit):
         rank_locs = np.where((rank_0 >= threshold) | (rank_180 >= threshold))
         # Exit early if rank is found
         if (len(rank_locs[0]) != 0):
-            print("Card is a " + rank)
             return rank
         
     print("Card rank cannot be determined")
     return "u"
 
 # Load card, rank, and suit images
-card_img = cv2.imread('cards/copag/bases/clubs/10.jpg')
+card_img = cv2.imread('cards/copag/bases/hearts/2.jpg')
 
 suit = detectSuit(card_img,"copag")
 rank = detectRank(card_img,"copag",suit)
+
+print(rank + suit)
 
 # Display boxed image
 #cv2.namedWindow("Result",cv2.WINDOW_NORMAL)
